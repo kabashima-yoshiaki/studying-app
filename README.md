@@ -27,11 +27,9 @@
 - `icons/icon.svg`
 - `app.py`
 
-## 静的版の使い方
+## 使い方
 
-`index.html` をブラウザで開くと使えます。
-
-GitHub Pages に公開する場合は `DEPLOY.md` を参照してください。
+https://kabashima-yoshiaki.github.io/studying-app/をブラウザで開くと使えます。
 
 ## Python 版
 
