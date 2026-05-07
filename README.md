@@ -29,7 +29,7 @@
 
 ## 使い方
 
-https://kabashima-yoshiaki.github.io/studying-app/をブラウザで開くと使えます。
+[https://kabashima-yoshiaki.github.io/studying-app/](https://kabashima-yoshiaki.github.io/studying-app/)をブラウザで開くと使えます。
 
 ## Python 版
 
