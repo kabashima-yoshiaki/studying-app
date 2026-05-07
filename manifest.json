@@ -1,0 +1,19 @@
+{
+  "name": "Study Finish Planner",
+  "short_name": "Study Planner",
+  "description": "本や教材のページ学習を、現在ページ・目標ページ・締切から逆算して進められる学習計画アプリ",
+  "lang": "ja",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f1e5",
+  "theme_color": "#bc5a2c",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
