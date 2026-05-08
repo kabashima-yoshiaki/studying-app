@@ -1,4 +1,4 @@
-const CACHE_NAME = "study-finish-planner-v3";
+const CACHE_NAME = "study-finish-planner-v4";
 const APP_ASSETS = [
   "./",
   "./index.html",

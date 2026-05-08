@@ -9,6 +9,7 @@ const elements = {
   targetPage: document.getElementById("targetPage"),
   startDate: document.getElementById("startDate"),
   deadlineDate: document.getElementById("deadlineDate"),
+  checkpointDate: document.getElementById("checkpointDate"),
   logPage: document.getElementById("logPage"),
   saveProgress: document.getElementById("saveProgress"),
   heroTitle: document.getElementById("heroTitle"),
@@ -21,6 +22,7 @@ const elements = {
   statusBanner: document.getElementById("statusBanner"),
   progressPercent: document.getElementById("progressPercent"),
   checkpointLabel: document.getElementById("checkpointLabel"),
+  checkpointDateResult: document.getElementById("checkpointDateResult"),
   miniGoal: document.getElementById("miniGoal"),
   savedProgressText: document.getElementById("savedProgressText"),
   resetProgress: document.getElementById("resetProgress"),
@@ -48,6 +50,7 @@ function createDefaultState() {
     targetPage: 0,
     startDate: today,
     deadlineDate: getOffsetDateString(today, 60),
+    checkpointDate: today,
     progressLog: []
   };
 }
@@ -94,6 +97,10 @@ function normalizeState(rawState) {
     ? rawState.deadlineDate
     : defaults.deadlineDate;
   const deadlineDate = deadlineDateCandidate >= startDate ? deadlineDateCandidate : startDate;
+  const checkpointDateCandidate = isValidIsoDate(rawState.checkpointDate)
+    ? rawState.checkpointDate
+    : defaults.checkpointDate;
+  const checkpointDate = clampDateString(checkpointDateCandidate, startDate, deadlineDate);
   const ready = isPlanReady({ currentPage, targetPage });
   let progressLog = ready
     ? sanitizeProgressLog(rawState.progressLog, currentPage, targetPage)
@@ -116,6 +123,7 @@ function normalizeState(rawState) {
     targetPage,
     startDate,
     deadlineDate,
+    checkpointDate,
     progressLog
   };
 }
@@ -145,6 +153,7 @@ function hydrateForm() {
   elements.targetPage.value = state.targetPage;
   elements.startDate.value = state.startDate;
   elements.deadlineDate.value = state.deadlineDate;
+  elements.checkpointDate.value = state.checkpointDate;
   elements.logPage.value = getLatestProgress().page;
 }
 
@@ -153,11 +162,15 @@ function bindEvents() {
     event.preventDefault();
   });
 
-  elements.plannerForm.addEventListener("input", () => {
+  const rerenderPlan = () => {
     updateStateFromInputs();
     saveState();
     render();
-  });
+  };
+
+  elements.plannerForm.addEventListener("input", rerenderPlan);
+  elements.checkpointDate.addEventListener("input", rerenderPlan);
+  elements.checkpointDate.addEventListener("change", rerenderPlan);
 
   elements.logForm.addEventListener("submit", (event) => {
     event.preventDefault();
@@ -205,10 +218,12 @@ function updateStateFromInputs() {
     currentPage: Number(elements.currentPage.value),
     targetPage: Number(elements.targetPage.value),
     startDate: elements.startDate.value,
-    deadlineDate: elements.deadlineDate.value
+    deadlineDate: elements.deadlineDate.value,
+    checkpointDate: elements.checkpointDate.value
   });
 
   elements.deadlineDate.value = state.deadlineDate;
+  elements.checkpointDate.value = state.checkpointDate;
   elements.logPage.value = getLatestProgress().page;
 }
 
@@ -236,6 +251,7 @@ function render() {
     elements.checkpointLabel.textContent = "まずは現在ページ、目標ページ、期間を入れてください。";
     elements.miniGoal.textContent = "設定すると、次の小目標が自動で表示されます。";
     elements.savedProgressText.textContent = "まだ記録はありません";
+    elements.checkpointDateResult.textContent = "まずは学習条件を入れると、指定日までの理想到達ページをここに表示します。";
     elements.statusBanner.className = "status-banner";
     elements.statusBanner.innerHTML = `
       <strong>最初の設定をすると計画が始まります。</strong><br>
@@ -267,10 +283,13 @@ function render() {
   elements.savedProgressText.textContent = `${latestProgress.date} / ${latestProgress.page}ページ`;
   elements.statusBanner.className = `status-banner ${plan.statusTone}`;
   elements.statusBanner.innerHTML = plan.statusText;
+  elements.checkpointDateResult.innerHTML = buildCheckpointDateResult(plan, state.checkpointDate, latestProgress.page);
 
   setLogDisabledState(false);
   elements.logPage.min = String(state.currentPage);
   elements.logPage.max = String(state.targetPage);
+  elements.checkpointDate.min = state.startDate;
+  elements.checkpointDate.max = state.deadlineDate;
   elements.logPage.value = clampNumber(
     sanitizeWholeNumber(elements.logPage.value, latestProgress.page, state.currentPage),
     state.currentPage,
@@ -349,6 +368,8 @@ function buildPlan(planState) {
     isReady: true,
     currentPage,
     targetPage,
+    startDate,
+    deadlineDate,
     remainingPages,
     daysLeft,
     dailyPace,
@@ -361,6 +382,31 @@ function buildPlan(planState) {
     milestones: buildMilestones(currentPage, targetPage, startDate, deadlineDate),
     sprint: buildSprint(currentPage, targetPage, startDate, deadlineDate, latest.page)
   };
+}
+
+function buildCheckpointDateResult(plan, checkpointDateIso, latestPage) {
+  const checkpointDate = parseLocalDate(checkpointDateIso);
+  const startDate = parseLocalDate(plan.startDate);
+  const deadlineDate = parseLocalDate(plan.deadlineDate);
+  const safeDate = checkpointDate < startDate
+    ? startDate
+    : checkpointDate > deadlineDate
+      ? deadlineDate
+      : checkpointDate;
+  const totalSpan = daysBetween(startDate, deadlineDate);
+  const totalPages = Math.max(0, plan.targetPage - plan.currentPage);
+  const progress = totalSpan === 0 ? 1 : daysBetween(startDate, safeDate) / totalSpan;
+  const targetPageByDate = Math.min(
+    plan.targetPage,
+    plan.currentPage + Math.round(totalPages * progress)
+  );
+  const pagesNeeded = Math.max(0, targetPageByDate - latestPage);
+  const daysUntil = Math.max(0, daysBetween(parseLocalDate(getTodayString()), safeDate));
+
+  return `
+    <strong>${formatFullDate(safeDate)} までの目安</strong><br>
+    その日までに <strong>${targetPageByDate}ページ</strong> に到達しているのが理想です。今の最新記録からだと、あと <strong>${pagesNeeded}ページ</strong> 進めるイメージです。残りは <strong>${daysUntil}日</strong> です。
+  `;
 }
 
 function buildMilestones(currentPage, targetPage, startDate, deadlineDate) {
@@ -510,6 +556,14 @@ function formatMonthDay(date) {
   }).format(date);
 }
 
+function formatFullDate(date) {
+  return new Intl.DateTimeFormat("ja-JP", {
+    month: "numeric",
+    day: "numeric",
+    weekday: "short"
+  }).format(date);
+}
+
 function formatWeekday(date) {
   return new Intl.DateTimeFormat("ja-JP", {
     weekday: "short"
@@ -531,6 +585,22 @@ function getTodayString() {
 
 function getOffsetDateString(baseIsoDate, offsetDays) {
   return formatIsoDate(addDays(parseLocalDate(baseIsoDate), offsetDays));
+}
+
+function clampDateString(value, min, max) {
+  if (!isValidIsoDate(value)) {
+    return min;
+  }
+
+  if (value < min) {
+    return min;
+  }
+
+  if (value > max) {
+    return max;
+  }
+
+  return value;
 }
 
 function formatIsoDate(date) {

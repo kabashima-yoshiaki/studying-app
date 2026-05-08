@@ -7,7 +7,7 @@
   <meta name="theme-color" content="#bc5a2c">
   <meta
     name="description"
-    content="本や教材のページ学習を、現在ページ・目標ページ・締切から逆算して進められる学習計画アプリv1"
+    content="本や教材のページ学習を、現在ページ・目標ページ・締切から逆算して進められる学習計画アプリ"
   >
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -22,7 +22,7 @@
     <header class="hero">
       <div class="hero-copy">
         <p class="eyebrow">Study Finish Planner</p>
-        <h1>学習計画アプリ V1.0</h1>
+        <h1>ページ学習を、自分の条件で最後まで進める</h1>
         <p class="hero-text">
           本、参考書、講義資料、資格教材など、ページ数のある学習を自分の条件で計画できるアプリです。
           現在ページ、目標ページ、期間を入れると、残りページ数や1日ごとの目安が自動で出ます。
@@ -152,6 +152,24 @@
             <strong id="savedProgressText">まだ記録はありません</strong>
           </div>
           <button id="resetProgress" type="button" class="ghost-button">進捗だけリセット</button>
+        </div>
+      </section>
+
+      <section class="card checkpoint-card">
+        <div class="section-heading">
+          <p class="section-kicker">Date Check</p>
+          <h2>指定日までの必要ページ</h2>
+        </div>
+
+        <div class="checkpoint-form">
+          <label>
+            <span>確認したい日付</span>
+            <input id="checkpointDate" name="checkpointDate" type="date">
+          </label>
+        </div>
+
+        <div id="checkpointDateResult" class="checkpoint-result" aria-live="polite">
+          まずは学習条件を入れると、指定日までの理想到達ページをここに表示します。
         </div>
       </section>
 
