@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Study Finish Planner</title>
+  <meta name="theme-color" content="#bc5a2c">
+  <meta
+    name="description"
+    content="本や教材のページ学習を、現在ページ・目標ページ・締切から逆算して進められる学習計画アプリ"
+  >
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Study Planner">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/icon.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Study Finish Planner</p>
+        <h1>ページ学習を、自分の条件で最後まで進める</h1>
+        <p class="hero-text">
+          本、参考書、講義資料、資格教材など、ページ数のある学習を自分の条件で計画できるアプリです。
+          現在ページ、目標ページ、期間を入れると、残りページ数や1日ごとの目安が自動で出ます。
+        </p>
+        <p class="hero-note">
+          設定と進捗は、このブラウザにだけ保存されます。ほかの人の設定と混ざることはありません。
+        </p>
+      </div>
+
+      <section class="hero-panel" aria-label="現在の目標サマリー">
+        <div class="hero-stat">
+          <span class="hero-stat-label">教材名</span>
+          <strong id="heroTitle">まだ未設定</strong>
+        </div>
+        <div class="hero-stat">
+          <span class="hero-stat-label">残りページ</span>
+          <strong id="heroRemaining">未設定</strong>
+        </div>
+        <div class="hero-stat accent">
+          <span class="hero-stat-label">今日の目安</span>
+          <strong id="heroDaily">未設定</strong>
+        </div>
+      </section>
+    </header>
+
+    <main class="layout">
+      <section class="card planner-card">
+        <div class="section-heading">
+          <p class="section-kicker">Setup</p>
+          <h2>最初の設定</h2>
+        </div>
+
+        <form id="plannerForm" class="planner-form">
+          <label class="full-span">
+            <span>教材名</span>
+            <input
+              id="studyTitle"
+              name="studyTitle"
+              type="text"
+              maxlength="120"
+              placeholder="例: ゼロから作る Deep Learning 3"
+            >
+          </label>
+
+          <label>
+            <span>現在のページ</span>
+            <input id="currentPage" name="currentPage" type="number" min="0" step="1" required>
+          </label>
+
+          <label>
+            <span>目標ページ</span>
+            <input id="targetPage" name="targetPage" type="number" min="1" step="1" required>
+          </label>
+
+          <label>
+            <span>スタート日</span>
+            <input id="startDate" name="startDate" type="date" required>
+          </label>
+
+          <label>
+            <span>締切日</span>
+            <input id="deadlineDate" name="deadlineDate" type="date" required>
+          </label>
+        </form>
+
+        <div class="planner-actions">
+          <button id="resetAll" type="button" class="ghost-button">最初からやり直す</button>
+          <p class="helper-note">入力すると自動で保存されます。</p>
+        </div>
+
+        <div id="statusBanner" class="status-banner" aria-live="polite"></div>
+
+        <div class="summary-grid" aria-label="学習の要点">
+          <article class="summary-card">
+            <span>残りページ</span>
+            <strong id="remainingPages">-</strong>
+            <p>目標までに読み切る分量</p>
+          </article>
+          <article class="summary-card">
+            <span>残り日数</span>
+            <strong id="remainingDays">-</strong>
+            <p>今日から締切日までの残り学習日数</p>
+          </article>
+          <article class="summary-card">
+            <span>必要ペース</span>
+            <strong id="dailyPace">-</strong>
+            <p>1日あたりの目安ページ</p>
+          </article>
+          <article class="summary-card">
+            <span>今週の目安</span>
+            <strong id="weeklyPace">-</strong>
+            <p>7日で進めたいページ数</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="card tracker-card">
+        <div class="section-heading">
+          <p class="section-kicker">Progress</p>
+          <h2>進捗チェック</h2>
+        </div>
+
+        <div class="progress-wrap">
+          <div class="progress-ring" role="img" aria-label="全体の進捗">
+            <div class="progress-ring-inner">
+              <span id="progressPercent">0%</span>
+              <small>completed</small>
+            </div>
+          </div>
+          <div class="progress-copy">
+            <p id="checkpointLabel" class="checkpoint-label">まずは条件を入れると、今日の理想到達点が出ます。</p>
+            <p id="miniGoal" class="mini-goal">次の小目標もここに表示されます。</p>
+          </div>
+        </div>
+
+        <form id="logForm" class="log-form">
+          <label>
+            <span>今日の到達ページ</span>
+            <input id="logPage" name="logPage" type="number" min="0" step="1" required>
+          </label>
+          <button id="saveProgress" type="submit">進捗を保存</button>
+        </form>
+
+        <div class="saved-progress">
+          <div>
+            <span class="saved-progress-label">保存済みの最新記録</span>
+            <strong id="savedProgressText">まだ記録はありません</strong>
+          </div>
+          <button id="resetProgress" type="button" class="ghost-button">進捗だけリセット</button>
+        </div>
+      </section>
+
+      <section class="card checkpoint-card">
+        <div class="section-heading">
+          <p class="section-kicker">Date Check</p>
+          <h2>指定日までの必要ページ</h2>
+        </div>
+
+        <div class="checkpoint-form">
+          <label>
+            <span>確認したい日付</span>
+            <input id="checkpointDate" name="checkpointDate" type="date">
+          </label>
+        </div>
+
+        <div id="checkpointDateResult" class="checkpoint-result" aria-live="polite">
+          まずは学習条件を入れると、指定日までの理想到達ページをここに表示します。
+        </div>
+      </section>
+
+      <section class="card milestones-card">
+        <div class="section-heading">
+          <p class="section-kicker">Weekly Roadmap</p>
+          <h2>週ごとの到達ライン</h2>
+        </div>
+        <div id="milestoneList" class="milestone-list" aria-live="polite"></div>
+      </section>
+
+      <section class="card sprint-card">
+        <div class="section-heading">
+          <p class="section-kicker">Next 14 Days</p>
+          <h2>直近2週間の進め方</h2>
+        </div>
+        <div id="sprintList" class="sprint-list" aria-live="polite"></div>
+      </section>
+    </main>
+  </div>
+
+  <template id="milestoneTemplate">
+    <article class="milestone-item">
+      <div>
+        <p class="milestone-week"></p>
+        <strong class="milestone-range"></strong>
+      </div>
+      <div class="milestone-target-wrap">
+        <span class="milestone-target-label">目標ページ</span>
+        <strong class="milestone-target"></strong>
+      </div>
+    </article>
+  </template>
+
+  <template id="sprintTemplate">
+    <article class="sprint-item">
+      <div>
+        <p class="sprint-date"></p>
+        <strong class="sprint-focus"></strong>
+      </div>
+      <div class="sprint-page-wrap">
+        <span class="sprint-page-label">目安ページ</span>
+        <strong class="sprint-page"></strong>
+      </div>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
