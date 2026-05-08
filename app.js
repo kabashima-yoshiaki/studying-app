@@ -162,11 +162,15 @@ function bindEvents() {
     event.preventDefault();
   });
 
-  elements.plannerForm.addEventListener("input", () => {
+  const rerenderPlan = () => {
     updateStateFromInputs();
     saveState();
     render();
-  });
+  };
+
+  elements.plannerForm.addEventListener("input", rerenderPlan);
+  elements.checkpointDate.addEventListener("input", rerenderPlan);
+  elements.checkpointDate.addEventListener("change", rerenderPlan);
 
   elements.logForm.addEventListener("submit", (event) => {
     event.preventDefault();
